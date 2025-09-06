@@ -204,7 +204,43 @@
                 border-radius: 12px;
                 padding: 10px 12px;
             }
-            
+            .card h3 {margin: 0 0 6px; font-size: 16px;}
+            .card p {margin: 0; color: var(--muted); font-size: 13px;}
+            .buy {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 6px;
+                min-width: 160px;             
+            }
+            .price {font-weight: 800; font-size: 14px;}
+            .levle {color: var(--muted); font-size: 12px;}
+            .buy .btn {padding: 8px 10px;}
+            .btn[disabled] {opacity: .55; cursor: not-allowed;}
+            .toolbar {display: flex; gap: 8px; flex-wrap: wrap;}
+            .footer-note {margin-top: 10px; color: var(--muted); font-size: 12px;}
+            .hint {color: var(--muted); font-size: 13px; margin-top: 6px;}
         </style>
     </head>
+    <body>
+        <div class="wrap">
+            <header>
+                <h1>Zoro Clicker</h1>
+                <div class="stats">
+                    <div class="stat">Cuts: <b id="score">0</b></div>
+                    <div class="stat">Per click: <b id="cpc">1</b></div>
+                    <div class="stat">Per second: <b id="cps">0</b></div>
+                    <div class="toolbar">
+                        <button class="btn secondary" id="saveBtn" title="Save progress (auto-saves asw, dw)">Save progress</button>
+                        <button class="btn secondary" id="resetBin" title="Reset all progress">Reset all your progress</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="layout">
+                <section class="stage" id="stage" arial-label="Keep clicking Zoro to make sure he isn't lost 😭"></section>
+                
+            </div>
+        </div>
+    </body>
 </html>
