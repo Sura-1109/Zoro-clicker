@@ -238,9 +238,141 @@
             </header>
 
             <div class="layout">
-                <section class="stage" id="stage" arial-label="Keep clicking Zoro to make sure he isn't lost 😭"></section>
-                
+                <section class="stage" id="stage" arial-label="Keep clicking Zoro to make sure he isn't lost 😭">
+                    <div class="zoro-wrap">
+                        <img id="zoroImg" src="zorosprite.png" alt="Zoro sprite" draggable="false" />
+                    </div>
+                </section>
+
+                <aside class="shop">
+                    <h2>Shop for upgrades</h2>
+                    <div class="items" id="items"></div>
+                    <div class="hint">TIP: PRESS SPACE/ENTER FOR FASTER CLICKING</div>
+                    <div class="footer-note">Game autosaves every 10 seconds approx</div>
+                </aside>
             </div>
         </div>
+
+        <script>
+            //Game State
+            const LS_KEY = 'zoro-clicker';
+            let state= {
+                score: 0,
+                cpcBase: 1,
+                cps: 0,
+                mult: 1,
+                upgrades: {
+                    training: 0,
+                    crew: 0,
+                    haki: 0,
+                    whetstone: 0,
+                },
+                lastTs: Date.now()
+            };
+
+            //Upgrade definitions
+            const upgrades = [
+                {
+                    id: 'training',
+                    name: 'Daily regular training',
+                    desc: '+1 per click',
+                    base: 15, factor: 1.15,
+                    effect: (lvl) => ({cpcAdd: 1}),
+                    icon: '🔥💪'
+                },
+                {
+                    id: 'crew'
+                    name: 'Crewates help',
+                    desc: '+1 per sec',
+                    base: 50, factor: 1.15, 
+                    effect: (lvl) => ({cpsAdd: 1}),
+                    icon: '⚔️'
+                },
+                {
+                    id: 'whetstone'
+                    name: 'Whetstone to sharpen Zoros swords'
+                    desc: '+5 per click',
+                    base: 200, factor: 1.25,
+                    effect: (lvl) => ({cpcAdd: 5},)
+                    icon: '🪨'            
+                },
+                {
+                    id: 'haki'
+                    name: 'Focus',
+                    desc: 'Double all your production'
+                    base: 500, factor: 2.6,
+                    effect: (lvl) => ({multMul: 2}),
+                    icon: '🔥✨⚡'
+                }
+            ];
+
+            //Utilities
+            const $ = (sel) => document.querySelector(sel);
+            const stage = $('#stage');
+            const zoroImg = $('#zoroImg');
+            const scoreEl = $('#score');
+            const cpcEl = $('#cpc');
+            const cpsEl = $('#cps');
+            const itemsEl = $('#items');
+
+            function format(n){
+                if (!isFinite(n)) return '∞';
+                const abs = Math.abs(n);
+                if (abs < 1000) return Math.floor(n).toString();
+                const units = ['K','M','B','T','Qa','Qi','Sx','S','Oc','No','Dc'];
+                let unit = -1;
+                while (Math.abs(n) >= 1000 && unit < units.length-1) {n /= 1000; unit++;}
+                return n.toFixed(n >= 100 ? 0 : n >= 10 ? 1:2) + units[unit];
+            }
+            function getCost(def, level){
+                return Math.floor(def.base*Math.pow(def.factor, level));
+            }
+            function getCpc(){
+                //base+cpcs gets added, then they get multiplied
+                let cpc = state.cpcBase;
+                cpc += state.upgrades.training*1;
+                cpc +=state.upgrades.whetstone*5;
+                cpc=Math.max(1, cpc);
+                return Math.floor(cpc*state.mult);
+            }
+            function getCps(){
+                let cps = 0;
+                cps += state.upgrades.crew*1;
+                cps = Math.floor(cps*state.mult);
+                return cps;                
+            }
+            function save(){
+                try{
+                    const raw = localStorage.getItem(LS_KEY);
+                    if (raw){
+                        const obj = JSON.parse(raw);
+                        if (obj && typeof obj === 'object'){
+                            state = Object.assign(state, obj);
+                            //To computing the offline gains
+                            const now = Date.now();
+                            const dtSec = Math.max(0, Math.floor((now - (state.lastTs||now))/1000));
+                            if (dtSec > 0){
+                                const offline = getCps()*dtSec;
+                                state.score += offline;                                
+                            }
+                            state.lastTs = now;
+                        }
+                    }
+                }catch(e){console.warn('Loading failed', e);}
+            }
+
+            //UI
+            function renderStats(){
+                scoreEl.textContent = format(state.score);
+                cpcEl.textContent = format(getCpc());
+                cpsEl.textContent = format(getCps());
+                //To update buttons tht r enabled/disabled n prices asw
+                document.querySelectorAll('[data-upg-id]').forEach(card => {
+                    const id = card.getAttribute('data-upg-id');
+                    const def = upgrades.find(u => u.id === id);
+                    
+                })
+            }
+        </script>
     </body>
 </html>
