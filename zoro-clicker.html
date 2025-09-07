@@ -503,6 +503,121 @@
         createShop();
         renderStats();
         requestAnimationFrame(tick);
+        // === Boss Fight Feature ===
+
+let totalClicks = 0;
+let inBossFight = false;
+let bossHP = 0;
+let bossMaxHP = 0;
+let currentBoss = "";
+
+const bosses = [
+    "Buggy the Clown",
+    "Don Krieg",
+    "Arlong",
+    "Crocodile",
+    "Rob Lucci",
+    "Gecko Moria",
+    "Doflamingo",
+    "Katakuri",
+    "Kaido"
+];
+
+// Add boss UI
+const bossContainer = document.createElement("div");
+bossContainer.id = "boss-container";
+bossContainer.style.position = "absolute";
+bossContainer.style.top = "20px";
+bossContainer.style.left = "50%";
+bossContainer.style.transform = "translateX(-50%)";
+bossContainer.style.textAlign = "center";
+bossContainer.style.fontFamily = "sans-serif";
+bossContainer.style.fontSize = "18px";
+bossContainer.style.color = "white";
+bossContainer.style.display = "none";
+
+bossContainer.innerHTML = `
+    <div id="boss-name"></div>
+    <div style="background:#444; width:300px; height:20px; border-radius:10px; margin-top:5px; overflow:hidden;">
+        <div id="boss-hp" style="background:red; height:100%; width:100%;"></div>
+    </div>
+`;
+document.body.appendChild(bossContainer);
+
+const bossNameEl = document.getElementById("boss-name");
+const bossHpEl = document.getElementById("boss-hp");
+
+function startBossFight() {
+    inBossFight = true;
+    bossMaxHP = 20;
+    bossHP = bossMaxHP;
+    currentBoss = bosses[Math.floor(Math.random() * bosses.length)];
+
+    bossContainer.style.display = "block";
+    bossNameEl.textContent = `⚔️ ${currentBoss}`;
+    bossHpEl.style.width = "100%";
+
+    alert(`⚔️ A boss appears: ${currentBoss}!\nYou must land ${bossMaxHP} cuts to defeat him!`);
+}
+
+function damageBoss() {
+    if (inBossFight) {
+        bossHP -= perClick;
+        if (bossHP < 0) bossHP = 0;
+
+        const percent = (bossHP / bossMaxHP) * 100;
+        bossHpEl.style.width = percent + "%";
+
+        if (bossHP <= 0) {
+            inBossFight = false;
+            bossContainer.style.display = "none";
+            alert(`✅ You defeated ${currentBoss}!`);
+        }
+    }
+}
+
+function createSlashEffect(x, y) {
+    const slash = document.createElement("div");
+    slash.textContent = "✦";
+    slash.style.position = "absolute";
+    slash.style.left = x + "px";
+    slash.style.top = y + "px";
+    slash.style.fontSize = "32px";
+    slash.style.color = "red";
+    slash.style.opacity = 1;
+    slash.style.transform = "rotate(" + (Math.random() * 90 - 45) + "deg)";
+    slash.style.transition = "all 0.6s ease-out";
+
+    document.body.appendChild(slash);
+
+    setTimeout(() => {
+        slash.style.opacity = 0;
+        slash.style.top = (y - 50) + "px";
+    }, 50);
+
+    setTimeout(() => {
+        slash.remove();
+    }, 700);
+}
+
+// === Hook into your Zoro image click ===
+const zoroImg = document.querySelector("img"); // adjust if your Zoro image has an ID
+zoroImg.addEventListener("click", (e) => {
+    totalClicks++;
+
+    if (inBossFight) {
+        damageBoss();
+        createSlashEffect(e.pageX, e.pageY);
+    } else {
+        clickGain();
+        if (totalClicks % 50 === 0) {
+            startBossFight();
+        }
+    }
+});
+     
+
+
         </script>
     </body>
 </html>
