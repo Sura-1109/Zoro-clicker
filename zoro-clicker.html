@@ -232,7 +232,8 @@
                     <div class="stat">Per second: <b id="cps">0</b></div>
                     <div class="toolbar">
                         <button class="btn secondary" id="saveBtn" title="Save progress (auto-saves asw, dw)">Save progress</button>
-                        <button class="btn secondary" id="resetBin" title="Reset all progress">Reset all your progress</button>
+                        <!-- FIX: id resetBin -> resetBtn to match JS -->
+                        <button class="btn secondary" id="resetBtn" title="Reset all progress">Reset all your progress</button>
                     </div>
                 </div>
             </header>
@@ -341,7 +342,16 @@
                 cps = Math.floor(cps*state.mult);
                 return cps;                
             }
+
+            // FIX: proper save() and load()
             function save(){
+                try{
+                    state.lastTs = Date.now();
+                    localStorage.setItem(LS_KEY, JSON.stringify(state));
+                }catch(e){ console.warn('Save failed', e); }
+            }
+
+            function load(){
                 try{
                     const raw = localStorage.getItem(LS_KEY);
                     if (raw){
@@ -396,7 +406,8 @@
                         <div class="buy">
                             <div class="price">Cost: ${format(price)}</div>
                             <div class="levle">Owned: ${level}</div>
-                            <button class="btn" ${!canBuy ? 'disabled' : ''}>Buy</button>
+                            <!-- FIX: add missing buyBtn class so listener attaches -->
+                            <button class="btn buyBtn" ${!canBuy ? 'disabled' : ''}>Buy</button>
                         </div>
                     `;
                     card.querySelector('.buyBtn').addEventListener('click', () => buy(def.id));
