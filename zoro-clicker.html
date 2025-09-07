@@ -183,7 +183,7 @@
             .shop {
                 padding: 16px;
                 border-radius: var(--radius);
-                background: linear-gradient(180deg, #101a36 0%, #0f182e 100%)
+                background: linear-gradient(180deg, #101a36 0%, #0f182e 100%);
                 box-shadow: var(--shadow);
             }
             .shop h2{
@@ -281,7 +281,7 @@
                     icon: '🔥💪'
                 },
                 {
-                    id: 'crew'
+                    id: 'crew',
                     name: 'Crewates help',
                     desc: '+1 per sec',
                     base: 50, factor: 1.15, 
@@ -289,17 +289,17 @@
                     icon: '⚔️'
                 },
                 {
-                    id: 'whetstone'
-                    name: 'Whetstone to sharpen Zoros swords'
+                    id: 'whetstone',
+                    name: 'Whetstone to sharpen Zoros swords',
                     desc: '+5 per click',
                     base: 200, factor: 1.25,
-                    effect: (lvl) => ({cpcAdd: 5},)
+                    effect: (lvl) => ({cpcAdd: 5}),
                     icon: '🪨'            
                 },
                 {
-                    id: 'haki'
+                    id: 'haki',
                     name: 'Focus',
-                    desc: 'Double all your production'
+                    desc: 'Double all your production',
                     base: 500, factor: 2.6,
                     effect: (lvl) => ({multMul: 2}),
                     icon: '🔥✨⚡'
@@ -370,9 +370,128 @@
                 document.querySelectorAll('[data-upg-id]').forEach(card => {
                     const id = card.getAttribute('data-upg-id');
                     const def = upgrades.find(u => u.id === id);
-                    
-                })
+                    const level = state.upgrades[id] || 0;
+                    const price = getCost(def, level);
+                    const canBuy = state.score >= price;
+                    card.querySelector('.price').textContent = `Cost: ${format(price)}`;
+                    card.querySelector('.levle').textContent = `Owned: ${level}`;
+                    const btn = card.querySelector('button');
+                    btn.disabled = !canBuy;
+                });
             }
+            function createShop(){
+                itemsEl.innerHTML = '';
+                for (const def of upgrades){
+                    const level = state.upgrades[def.id] || 0;
+                    const price = getCost(def, level);
+                    const canBuy = state.score >= price;
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.setAttribute('data-upg-id', def.id);
+                    card.innerHTML = `
+                        <div>
+                            <h3>${def.icon} ${def.name}</h3>
+                            <p>${def.desc}</p>
+                        </div>
+                        <div class="buy">
+                            <div class="price">Cost: ${format(price)}</div>
+                            <div class="levle">Owned: ${level}</div>
+                            <button class="btn" ${!canBuy ? 'disabled' : ''}>Buy</button>
+                        </div>
+                    `;
+                    card.querySelector('.buyBtn').addEventListener('click', () => buy(def.id));
+                    itemsEl.appendChild(card);
+                }
+                renderStats();
+            }
+
+        function buy(id){
+            const def = upgrades.find(u => u.id === id);
+            const level = state.upgrades[id] || 0;
+            const price = getCost(def, level);
+            if (state.score < price) return;
+            state.score -= price;
+            state.upgrades[id] = level + 1;
+
+            //applying the effect
+            const eff = def.effect(level + 1);
+            if (eff.cpsAdd) state.cps += 0;
+            if (eff.cpcAdd) state.cpcBase += 0;
+            if (eff.multMul) state.mult *= eff.multMul;
+
+            renderStats();
+            save();
+        }
+        function spawnFloat(x, y, text, crit=false){
+            const el = document.createElement('div');
+            el.className = 'float' + (crit ? 'crit':'norm');
+            el.textContent = text;
+            const rect = stage.getBoundingClientRect();
+            el.style.left = (x - rect.left) + 'px';
+            el.style.top = (y - rect.top) + 'px';
+            stage.appendChild(el);
+            setTimeout(() => el.remove(), 950);
+        }
+
+        //Interaction
+        function clickGain (atX, atY){
+            //Crit hit chance (5%) for x 10
+            const crit = Math.random() < 0.05;
+            const gain = (crit ? 10 : 1) * getCpc();
+            state.score += gain;
+            //Visual feedack on screen
+            zoroImg.classList.remove('pulse');
+            //to restart the animation
+            void zoroImg.offsetWidth;
+            zoroImg.classList.add('pulse');
+            spawnFloat(atX, atY, `+${format(gain)}` + (crit ? 'CRIT!':''), crit);
+            renderStats();
+        }
+        zoroImg.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            clickGain(e.clientX, e.clientY);
+        });
+
+        //Keyboard support
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'Enter'){
+                const rect = zoroImg.getBoundingClientRect();
+                const cx = rect.left + rect.width/2;
+                const cy = rect.top + rect.height/2;
+                clickGain(cx, cy);
+            }
+        });
+
+        //Save/Reset
+        $('#saveBtn').addEventListener('click', save);
+        $('#resetBtn').addEventListener('click', () => {
+            if (!confirm('Reset all progress, u sure gng?')) return;
+            localStorage.removeItem(LS_KEY);
+            location.reload();            
+        });
+
+        //Game Loop
+        function tick (){
+            //passive income based on cps
+            const now = Date.now();
+            const dt = Math.max(0, now - state.lastTs);
+            state.lastTs = now;
+            const cps = getCps();
+            if (cps > 0){
+                state.score += (cps*dt) / 1000;
+            }
+            renderStats();
+            requestAnimationFrame(tick);
+        }
+
+        //autp-save
+        setInterval(save, 10000);
+
+        //Initilisation
+        load();
+        createShop();
+        renderStats();
+        requestAnimationFrame(tick);
         </script>
     </body>
 </html>
