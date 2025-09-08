@@ -1,619 +1,483 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Zoro Clicker</title>
-        <style>
-            :root {
-                --bg: #0b1220;
-                --panel: #131a2a;
-                --panel-2: #0f1626;
-                --text: #e7f5ff;
-                --muted: #9fb3c8;
-                --accent: #2eea7a;
-                --accent-2: #18b26b;
-                --warning: #ffb020;
-                --danger: #ff5d5d;
-                --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-                --radius: 16px; 
-            }
-            * {
-                box-sizing: border-box;                
-            }
-            html, 
-            body {
-                height: 100%;                
-            }
-            body {
-                margin: 0;
-                font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-                color: var(--text);
-                background:
-                    radial-gradient(1200px 800px at 10% -10%, rgba(46, 234, 122, 0.15), transparent 60%),
-                    radial-gradient(900px 700px at 110% 10%, rgba(24, 178, 107, 0.2), transparent 55%),
-                    linear-gradient(180deg, #061120 0%, #0b1220 40%, #0a0f1a 100%);
-                    overflow-y: auto;
-            }
-            .wrap {
-                max-width: 1100px;
-                margin: 0 auto;
-                padding: 20px 16px 40px;
-                display: grid;
-                gap: 18px;
-                grid-template-columns: 1fr;                
-            }
-            header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                padding: 14px 16px;
-                border-radius: var(--radius);
-                background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
-                box-shadow: var(--shadow);
-                position: sticky;
-                top: 0;
-                z-index: 5;
-                backdrop-filter: blur(6px);
-            }
-            h1 {
-                font-size: 20px;
-                margin: 0;
-                letter-spacing: 0.4px;
-            }
-            .stats {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px 14px;
-                align-items: center;
-                color: var(--muted);
-                font-weight: 600;                
-            }
-            .stat {
-                background: #0c1930;
-                border: 1px solid rgba(255, 255, 255, 0,05);
-                padding: 6px 10px;
-                border-radius: 10px;
-                color: var(--text);
-            }
-            .stat b {
-                color: var(--accent);                
-            }
-            .btn {
-                appearance: none;
-                border: none;
-                border-radius: 10px;
-                padding: 10px 14px;
-                cursor: pointer;
-                background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
-                color: #06210f;
-                font-weight: 800;
-                letter-spacing: 0.3px;
-                box-shadow: 0 6px 18px rgba(46, 234, 122, 0.35);
-                transition: transform 0.06s ease, filter 0.2s ease, opacity 0.2s;                
-            }
-            .btn:active {
-                transform: translateY(1px) scale(0.98);
-            }
-            .btn secondary {
-                background: linear-gradient(180deg, #22314f 0%, #1a263e 100%);
-                color: var(--text);
-                box-shadow: var(--shadow);
-                border: 1px solid rgba(255, 255, 255, 0.06);                
-            }
-            .layout {
-                display: grid;
-                gap: 18px;
-                grid-template-columns: 1fr;                
-            }
-            @media (mid-width: 900px) {
-                .layout {
-                    grid-template-columns: 1.1fr 0.9fr;
-                }
-            }
-            .stage {
-                position: relative;
-                padding: 18px;
-                border-radius: var(--radius);
-                background: linear-gradient(180deg, #0e1730 0%, #0f1527 100%);
-                box-shadow: var(--shadow);
-                min-height: 420px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: hidden;
-            }
-            .zoro-wrap {
-                position: relative;
-                user-select: none;
-                -webkit-user-drag: none;
-            }
-            #zoroImg {
-                width: clamp(180px, 32vw, 320px);
-                image-rendering: pixelated;
-                filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.4));
-                transition: transform 0.06s ease, filter 0.2s ease;
-                cursor: pointer;
-                display: block;
-            }
-            #zoroImg:active {
-                transform: scale(0.97);
-            }
-            .pulse {
-                animation: pulse 0.2s ease;                
-            }
-            @keyframes pulse {
-                0% {
-                    transform: scale(1);                    
-                }
-                50% {
-                    transform: scale(0.97);
-                }
-                100% {
-                    transform: scale(1);
-                }
-            }
-            .float {
-                position: absolute;
-                pointer-events: none;
-                font-weight: 900;
-                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-                animation: rise 0.9s ease-out forwards;
-                will-change: transform, opacity;
-                font-size: clamp(16px, 2.8vw, 24px);
-            }
-            .float.crit {
-                color: #ffef5a;
-                filter: drop-shadow(0 0 6px rgba(255, 239, 90, 0.8));                
-            }
-            .float.norm {
-                color: var(--accent);
-            }
-            @keyframes rise {
-                0% {
-                    transform: translate(-50%, 0) scale(1);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translate(-50%, -70px) scale(0.9);
-                    opacity: 0;
-                }                
-            }
-            .shop {
-                padding: 16px;
-                border-radius: var(--radius);
-                background: linear-gradient(180deg, #101a36 0%, #0f182e 100%);
-                box-shadow: var(--shadow);
-            }
-            .shop h2{
-                margin: 0 0 10px;
-                font-size: 18px;                
-            }
-            .items {
-                display: grid;
-                gap: 10px;
-            }
-            .card {
-                display: grid;
-                grid-template-columns: 1fr auto;
-                gap: 10px;
-                align-items: center;
-                border: 1px solid rgba(255, 255, 255, 0.06);
-                background: #0d1731aa;
-                border-radius: 12px;
-                padding: 10px 12px;
-            }
-            .card h3 {margin: 0 0 6px; font-size: 16px;}
-            .card p {margin: 0; color: var(--muted); font-size: 13px;}
-            .buy {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-end;
-                gap: 6px;
-                min-width: 160px;             
-            }
-            .price {font-weight: 800; font-size: 14px;}
-            .levle {color: var(--muted); font-size: 12px;}
-            .buy .btn {padding: 8px 10px;}
-            .btn[disabled] {opacity: .55; cursor: not-allowed;}
-            .toolbar {display: flex; gap: 8px; flex-wrap: wrap;}
-            .footer-note {margin-top: 10px; color: var(--muted); font-size: 12px;}
-            .hint {color: var(--muted); font-size: 13px; margin-top: 6px;}
-        </style>
-    </head>
-    <body>
-        <div class="wrap">
-            <header>
-                <h1>Zoro Clicker</h1>
-                <div class="stats">
-                    <div class="stat">Cuts: <b id="score">0</b></div>
-                    <div class="stat">Per click: <b id="cpc">1</b></div>
-                    <div class="stat">Per second: <b id="cps">0</b></div>
-                    <div class="toolbar">
-                        <button class="btn secondary" id="saveBtn" title="Save progress (auto-saves asw, dw)">Save progress</button>
-                        <!-- FIX: id resetBin -> resetBtn to match JS -->
-                        <button class="btn secondary" id="resetBtn" title="Reset all progress">Reset all your progress</button>
-                    </div>
-                </div>
-            </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zoro Clicker</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #131a2a;
+      --panel-2: #0f1626;
+      --text: #e7f5ff;
+      --muted: #9fb3c8;
+      --accent: #2eea7a;
+      --accent-2: #18b26b;
+      --warning: #ffb020;
+      --danger: #ff5d5d;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      --radius: 16px;
+    }
 
-            <div class="layout">
-                <section class="stage" id="stage" arial-label="Keep clicking Zoro to make sure he isn't lost 😭">
-                    <div class="zoro-wrap">
-                        <img id="zoroImg" src="zorosprite.png" alt="Zoro sprite" draggable="false" />
-                    </div>
-                </section>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
 
-                <aside class="shop">
-                    <h2>Shop for upgrades</h2>
-                    <div class="items" id="items"></div>
-                    <div class="hint">TIP: PRESS SPACE/ENTER FOR FASTER CLICKING</div>
-                    <div class="footer-note">Game autosaves every 10 seconds approx</div>
-                </aside>
-            </div>
+    body {
+      margin: 0;
+      font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 10% -10%, rgba(46, 234, 122, 0.15), transparent 60%),
+        radial-gradient(900px 700px at 110% 10%, rgba(24, 178, 107, 0.2), transparent 55%),
+        linear-gradient(180deg, #061120 0%, #0b1220 40%, #0a0f1a 100%);
+      overflow-y: auto;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 1fr;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(6px);
+    }
+
+    h1 { font-size: 20px; margin: 0; letter-spacing: 0.4px; }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      align-items: center;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .stat {
+      background: #0c1930;
+      padding: 6px 10px;
+      border-radius: 10px;
+      color: var(--text);
+    }
+
+    .stat b { color: var(--accent); }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
+      color: #06210f;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      box-shadow: 0 6px 18px rgba(46, 234, 122, 0.35);
+      transition: transform 0.06s ease, filter 0.2s ease, opacity 0.2s;
+    }
+
+    .btn:active { transform: translateY(1px) scale(0.98); }
+
+    .btn.secondary {
+      background: linear-gradient(180deg, #22314f 0%, #1a263e 100%);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .layout { display: grid; gap: 18px; grid-template-columns: 1fr; }
+
+    .stage {
+      position: relative;
+      padding: 18px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #0e1730 0%, #0f1527 100%);
+      box-shadow: var(--shadow);
+      min-height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .zoro-wrap { position: relative; user-select: none; -webkit-user-drag: none; }
+
+    #zoroImg {
+      width: clamp(180px, 32vw, 320px);
+      image-rendering: pixelated;
+      filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.4));
+      transition: transform 0.06s ease, filter 0.2s ease;
+      cursor: pointer;
+      display: block;
+    }
+
+    #zoroImg:active { transform: scale(0.97); }
+
+    .pulse { animation: pulse 0.2s ease; }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.97); }
+      100% { transform: scale(1); }
+    }
+
+    .float {
+      position: absolute;
+      pointer-events: none;
+      font-weight: 900;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      animation: rise 0.9s ease-out forwards;
+      font-size: clamp(16px, 2.8vw, 24px);
+    }
+
+    .float.crit { 
+      color: #ffef5a; 
+      filter: drop-shadow(0 0 6px rgba(255, 239, 90, 0.8)); 
+    }
+
+    .float.norm { color: var(--accent); }
+
+    @keyframes rise {
+      0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -70px) scale(0.9); opacity: 0; }
+    }
+
+    .shop {
+      padding: 16px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #101a36 0%, #0f182e 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .shop h2 { margin: 0 0 10px; font-size: 18px; }
+
+    .items { display: grid; gap: 10px; }
+
+    .card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: #0d1731aa;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .card h3 { margin: 0 0 6px; font-size: 16px; }
+
+    .card p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .buy { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: flex-end; 
+      gap: 6px; 
+      min-width: 160px; 
+    }
+
+    .price { font-weight: 800; font-size: 14px; }
+    .levle { color: var(--muted); font-size: 12px; }
+
+    .buy .btn { padding: 8px 10px; }
+
+    .btn[disabled] { opacity: .55; cursor: not-allowed; }
+
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .footer-note { margin-top: 10px; color: var(--muted); font-size: 12px; }
+
+    .hint { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+    #boss-container {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      font-size: 18px;
+      color: white;
+      display: none;
+    }
+
+    #boss-hpbar {
+      background: #444;
+      width: 300px;
+      height: 20px;
+      border-radius: 10px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+
+    #boss-hp {
+      background: red;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Zoro Clicker</h1>
+      <div class="stats">
+        <div class="stat">Cuts: <b id="score">0</b></div>
+        <div class="stat">Per click: <b id="cpc">1</b></div>
+        <div class="stat">Per second: <b id="cps">0</b></div>
+        <div class="toolbar">
+          <button class="btn secondary" id="saveBtn">Save progress</button>
+          <button class="btn secondary" id="resetBtn">Reset all your progress</button>
         </div>
+      </div>
+    </header>
 
-        <script>
-            //Game State
-            const LS_KEY = 'zoro-clicker';
-            let state= {
-                score: 0,
-                cpcBase: 1,
-                cps: 0,
-                mult: 1,
-                upgrades: {
-                    training: 0,
-                    crew: 0,
-                    haki: 0,
-                    whetstone: 0,
-                },
-                lastTs: Date.now()
-            };
-
-            //Upgrade definitions
-            const upgrades = [
-                {
-                    id: 'training',
-                    name: 'Daily regular training',
-                    desc: '+1 per click',
-                    base: 15, factor: 1.15,
-                    effect: (lvl) => ({cpcAdd: 1}),
-                    icon: '🔥💪'
-                },
-                {
-                    id: 'crew',
-                    name: 'Crewates help',
-                    desc: '+1 per sec',
-                    base: 50, factor: 1.15, 
-                    effect: (lvl) => ({cpsAdd: 1}),
-                    icon: '⚔️'
-                },
-                {
-                    id: 'whetstone',
-                    name: 'Whetstone to sharpen Zoros swords',
-                    desc: '+5 per click',
-                    base: 200, factor: 1.25,
-                    effect: (lvl) => ({cpcAdd: 5}),
-                    icon: '🪨'            
-                },
-                {
-                    id: 'haki',
-                    name: 'Focus',
-                    desc: 'Double all your production',
-                    base: 500, factor: 2.6,
-                    effect: (lvl) => ({multMul: 2}),
-                    icon: '🔥✨⚡'
-                }
-            ];
-
-            //Utilities
-            const $ = (sel) => document.querySelector(sel);
-            const stage = $('#stage');
-            const zoroImg = $('#zoroImg');
-            const scoreEl = $('#score');
-            const cpcEl = $('#cpc');
-            const cpsEl = $('#cps');
-            const itemsEl = $('#items');
-
-            function format(n){
-                if (!isFinite(n)) return '∞';
-                const abs = Math.abs(n);
-                if (abs < 1000) return Math.floor(n).toString();
-                const units = ['K','M','B','T','Qa','Qi','Sx','S','Oc','No','Dc'];
-                let unit = -1;
-                while (Math.abs(n) >= 1000 && unit < units.length-1) {n /= 1000; unit++;}
-                return n.toFixed(n >= 100 ? 0 : n >= 10 ? 1:2) + units[unit];
-            }
-            function getCost(def, level){
-                return Math.floor(def.base*Math.pow(def.factor, level));
-            }
-            function getCpc(){
-                //base+cpcs gets added, then they get multiplied
-                let cpc = state.cpcBase;
-                cpc += state.upgrades.training*1;
-                cpc +=state.upgrades.whetstone*5;
-                cpc=Math.max(1, cpc);
-                return Math.floor(cpc*state.mult);
-            }
-            function getCps(){
-                let cps = 0;
-                cps += state.upgrades.crew*1;
-                cps = Math.floor(cps*state.mult);
-                return cps;                
-            }
-
-            // FIX: proper save() and load()
-            function save(){
-                try{
-                    state.lastTs = Date.now();
-                    localStorage.setItem(LS_KEY, JSON.stringify(state));
-                }catch(e){ console.warn('Save failed', e); }
-            }
-
-            function load(){
-                try{
-                    const raw = localStorage.getItem(LS_KEY);
-                    if (raw){
-                        const obj = JSON.parse(raw);
-                        if (obj && typeof obj === 'object'){
-                            state = Object.assign(state, obj);
-                            //To computing the offline gains
-                            const now = Date.now();
-                            const dtSec = Math.max(0, Math.floor((now - (state.lastTs||now))/1000));
-                            if (dtSec > 0){
-                                const offline = getCps()*dtSec;
-                                state.score += offline;                                
-                            }
-                            state.lastTs = now;
-                        }
-                    }
-                }catch(e){console.warn('Loading failed', e);}
-            }
-
-            //UI
-            function renderStats(){
-                scoreEl.textContent = format(state.score);
-                cpcEl.textContent = format(getCpc());
-                cpsEl.textContent = format(getCps());
-                //To update buttons tht r enabled/disabled n prices asw
-                document.querySelectorAll('[data-upg-id]').forEach(card => {
-                    const id = card.getAttribute('data-upg-id');
-                    const def = upgrades.find(u => u.id === id);
-                    const level = state.upgrades[id] || 0;
-                    const price = getCost(def, level);
-                    const canBuy = state.score >= price;
-                    card.querySelector('.price').textContent = `Cost: ${format(price)}`;
-                    card.querySelector('.levle').textContent = `Owned: ${level}`;
-                    const btn = card.querySelector('button');
-                    btn.disabled = !canBuy;
-                });
-            }
-            function createShop(){
-                itemsEl.innerHTML = '';
-                for (const def of upgrades){
-                    const level = state.upgrades[def.id] || 0;
-                    const price = getCost(def, level);
-                    const canBuy = state.score >= price;
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.setAttribute('data-upg-id', def.id);
-                    card.innerHTML = `
-                        <div>
-                            <h3>${def.icon} ${def.name}</h3>
-                            <p>${def.desc}</p>
-                        </div>
-                        <div class="buy">
-                            <div class="price">Cost: ${format(price)}</div>
-                            <div class="levle">Owned: ${level}</div>
-                            <!-- FIX: add missing buyBtn class so listener attaches -->
-                            <button class="btn buyBtn" ${!canBuy ? 'disabled' : ''}>Buy</button>
-                        </div>
-                    `;
-                    card.querySelector('.buyBtn').addEventListener('click', () => buy(def.id));
-                    itemsEl.appendChild(card);
-                }
-                renderStats();
-            }
-
-        function buy(id){
-            const def = upgrades.find(u => u.id === id);
-            const level = state.upgrades[id] || 0;
-            const price = getCost(def, level);
-            if (state.score < price) return;
-            state.score -= price;
-            state.upgrades[id] = level + 1;
-
-            //applying the effect
-            const eff = def.effect(level + 1);
-            if (eff.cpsAdd) state.cps += 0;
-            if (eff.cpcAdd) state.cpcBase += 0;
-            if (eff.multMul) state.mult *= eff.multMul;
-
-            renderStats();
-            save();
-        }
-        function spawnFloat(x, y, text, crit=false){
-            const el = document.createElement('div');
-            el.className = 'float' + (crit ? 'crit':'norm');
-            el.textContent = text;
-            const rect = stage.getBoundingClientRect();
-            el.style.left = (x - rect.left) + 'px';
-            el.style.top = (y - rect.top) + 'px';
-            stage.appendChild(el);
-            setTimeout(() => el.remove(), 950);
-        }
-
-        //Interaction
-        function clickGain (atX, atY){
-            //Crit hit chance (5%) for x 10
-            const crit = Math.random() < 0.05;
-            const gain = (crit ? 10 : 1) * getCpc();
-            state.score += gain;
-            //Visual feedack on screen
-            zoroImg.classList.remove('pulse');
-            //to restart the animation
-            void zoroImg.offsetWidth;
-            zoroImg.classList.add('pulse');
-            spawnFloat(atX, atY, `+${format(gain)}` + (crit ? 'CRIT!':''), crit);
-            renderStats();
-        }
-        zoroImg.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            clickGain(e.clientX, e.clientY);
-        });
-
-        //Keyboard support
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'Enter'){
-                const rect = zoroImg.getBoundingClientRect();
-                const cx = rect.left + rect.width/2;
-                const cy = rect.top + rect.height/2;
-                clickGain(cx, cy);
-            }
-        });
-
-        //Save/Reset
-        $('#saveBtn').addEventListener('click', save);
-        $('#resetBtn').addEventListener('click', () => {
-            if (!confirm('Reset all progress, u sure gng?')) return;
-            localStorage.removeItem(LS_KEY);
-            location.reload();            
-        });
-
-        //Game Loop
-        function tick (){
-            //passive income based on cps
-            const now = Date.now();
-            const dt = Math.max(0, now - state.lastTs);
-            state.lastTs = now;
-            const cps = getCps();
-            if (cps > 0){
-                state.score += (cps*dt) / 1000;
-            }
-            renderStats();
-            requestAnimationFrame(tick);
-        }
-
-        //autp-save
-        setInterval(save, 10000);
-
-        //Initilisation
-        load();
-        createShop();
-        renderStats();
-        requestAnimationFrame(tick);  
-
-        //boss fight
-
-        let totalClicks = 0;
-        let inBossFight = false;
-        let bossHP = 0;
-        let bossMaxHp = 0;
-        let currentBoss = "";
-
-        const bosses = [
-            "Buggy the Clwon",
-            "Don Krieg",
-            "Arlong",
-            "Crocodile",
-            "Rob",
-            "Gecko Morio",
-            "Doflamingo",
-            "Katakuri",
-            "Kaido",
-        ];
-
-        //UI system for bosses
-        const bossContainer = document.createElement("div");
-        bossContainer.id = "boss-container";
-        bossContainer.style.position = "absolute";
-        bossContainer.style.top = "20px";
-        bossContainer.style.left = "50%";
-        bossContainer.style.transform = "translateX(-50%)";
-        bossContainer.style.textAlign = "center";
-        bossContainer.style.fontFamily = "sans-serif";
-        bossContainer.style.fontSize = "18px";
-        bossContainer.style.color = "white";
-        bossContainer.style.display = "none";
-
-        bossContainer.innerHTML = `
-            <div id="boss-name"></div>
-            <div style="background:#444; width:300px; height:20px; border-radius: 10px; margin-top: 5px; overflow:hidden;">
-                <div id="boss-hp" style="background:red; height:100%; width:100%;"></div>
+    <div class="layout">
+      <section class="stage" id="stage">
+        <div class="zoro-wrap">
+            <div id="boss-container" style="position:absolute; top:-40px; left:50%; transform:translateX(-50%); text-align:center; font-size:18px; color:white; display:none;">
+                <div id="boss-name"></div>
+                <div style="background:#444; width:200px; height:18px; border-radius:9px; margin-top:5px; overflow:hidden;">
+                    <div id="boss-hp" style="background:red; height:100%; width:100%;"></div>
+                </div>
             </div>
-        `;
-        document.body.appendChild(bossContainer);
+          <img id="zoroImg" src="zorosprite.png" alt="Zoro sprite" draggable="false" />
+        </div>
+        <div id="boss-container">
+          <div id="boss-name"></div>
+          <div id="boss-hpbar">
+            <div id="boss-hp"></div>
+          </div>
+        </div>
+      </section>
 
-        const bossNameEl = document.getElementById("boss-name");
-        const bossHpEl = document.getElementById("boss-hp")
+      <aside class="shop">
+        <h2>Shop for upgrades</h2>
+        <div class="items" id="items"></div>
+        <div class="hint">TIP: PRESS SPACE/ENTER FOR FASTER CLICKING</div>
+        <div class="footer-note">Game autosaves every 10 seconds approx</div>
+      </aside>
+    </div>
+  </div>
 
-        function startBossFight() {
-            inBossFight = true;
-            bossMaxHP = 2000;
-            bossHP = bossMaxHP;
-            currentBoss = bosses[Math.floor(Math.random()*bosses.length)];
+  <script>
+    const LS_KEY = 'zoro-clicker';
+    let state = {
+      score: 0,
+      cpcBase: 1,
+      cps: 0,
+      mult: 1,
+      upgrades: { training: 0, crew: 0, haki: 0, whetstone: 0 },
+      lastTs: Date.now()
+    };
 
-            bossContainer.style.display = "block";
-            bossNameEl.textContent = `⚔️ ${currentBoss}`;
-            bossHpEl.style.width = "100%";
+    const upgrades = [
+      {id:'training', name:'Daily regular training', desc:'+1 per click', base:15, factor:1.15, effect:(lvl)=>({cpcAdd:1}), icon:'🔥💪'},
+      {id:'crew', name:'Crewates help', desc:'+1 per sec', base:50, factor:1.15, effect:(lvl)=>({cpsAdd:1}), icon:'⚔️'},
+      {id:'whetstone', name:'Whetstone to sharpen Zoros swords', desc:'+5 per click', base:200, factor:1.25, effect:(lvl)=>({cpcAdd:5}), icon:'🪨'},
+      {id:'haki', name:'Focus', desc:'Double all your production', base:500, factor:2.6, effect:(lvl)=>({multMul:2}), icon:'🔥✨⚡'}
+    ];
 
-            alert(`⚔️ BOSS APEARED: ${currentBoss}!\nQUICK CUT HIM ZORO, U GOT THIS! U NEED ${bossMaxHP} CUTS TO SLAY HIM`);        
-        }
+    const $ = (sel) => document.querySelector(sel);
+    const stage = $('#stage');
+    const zoroImg = $('#zoroImg');
+    const scoreEl = $('#score');
+    const cpcEl = $('#cpc');
+    const cpsEl = $('#cps');
+    const itemsEl = $('#items');
 
-        function damageBoss() {
-            if (inBossFight) {
-                bossHP -= perClick;
-                if (bossHP < 0) bossHP = 0;
+    function format(n) {
+      if(!isFinite(n)) return '∞';
+      const abs = Math.abs(n);
+      if(abs < 1000) return Math.floor(n).toString();
+      const units = ['K','M','B','T','Qa','Qi','Sx','S','Oc','No','Dc'];
+      let unit = -1;
+      while(Math.abs(n) >= 1000 && unit < units.length-1) {
+        n /= 1000;
+        unit++;
+      }
+      return n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2) + units[unit];
+    }
 
-                const percent = (bossHP / bossMaxHP) * 100;
-                bossHpEl.style.width = percent + "%";
+    function getCost(def, level){ return Math.floor(def.base*Math.pow(def.factor, level)); }
+    function getCpc(){ let cpc=state.cpcBase; cpc+=state.upgrades.training*1; cpc+=state.upgrades.whetstone*5; cpc=Math.max(1,cpc); return Math.floor(cpc*state.mult); }
+    function getCps(){ let cps=0; cps+=state.upgrades.crew*1; return Math.floor(cps*state.mult); }
 
-                if (bossHP <= 0) {
-                    inBossFight = false;
-                    bossContainer.style.display = "none";
-                    alert(`ZORO U HV SLAYED ${currentBoss}!`);
-                }
-            }
-        }
+    function save(){ try{state.lastTs=Date.now(); localStorage.setItem(LS_KEY, JSON.stringify(state));}catch(e){} }
+    function load(){ try{const raw=localStorage.getItem(LS_KEY); if(raw){const obj=JSON.parse(raw); if(obj&&typeof obj==='object'){state=Object.assign(state,obj); const now=Date.now(); const dtSec=Math.max(0,Math.floor((now-(state.lastTs||now))/1000)); if(dtSec>0){state.score+=getCps()*dtSec;} state.lastTs=now;}}}catch(e){} }
 
-        function createSlashEffect(x, y) {
-            const slash = document.createElement("div");
-            slash.textContent = "🔪";
-            slash.style.position = "absolute";
-            slash.style.left = x + "px";
-            slash.style.top = y + "px";
-            slash.style.fontSize = "32px";
-            slash.style.color = "red";
-            slash.style.opacity = 0.25;
-            slash.style.transform = "rotate(" + (Math.random()*90 - 45) + "deg)";
-            slash.style.transition = "all 0.6s ease-out";
+    function renderStats(){
+      scoreEl.textContent = format(state.score);
+      cpcEl.textContent = format(getCpc());
+      cpsEl.textContent = format(getCps());
 
-            document.body.appendChild(slash);
+      document.querySelectorAll('[data-upg-id]').forEach(card=>{
+        const id = card.getAttribute('data-upg-id');
+        const def = upgrades.find(u=>u.id===id);
+        const level = state.upgrades[id]||0;
+        const price = getCost(def, level);
+        const canBuy = state.score >= price;
+        card.querySelector('.price').textContent=`Cost: ${format(price)}`;
+        card.querySelector('.levle').textContent=`Owned: ${level}`;
+        card.querySelector('button').disabled = !canBuy;
+      });
+    }
 
-            setTimeout(() => {
-                slash.style.opacity = 0;
-                slash.style.top = (y - 50) + "px";
-            }, 50);
+    function createShop(){
+      itemsEl.innerHTML='';
+      for(const def of upgrades){
+        const level=state.upgrades[def.id]||0;
+        const price=getCost(def,level);
+        const canBuy=state.score>=price;
+        const card=document.createElement('div');
+        card.className='card';
+        card.setAttribute('data-upg-id',def.id);
+        card.innerHTML=`
+          <div>
+            <h3>${def.icon} ${def.name}</h3>
+            <p>${def.desc}</p>
+          </div>
+          <div class="buy">
+            <div class="price">Cost: ${format(price)}</div>
+            <div class="levle">Owned: ${level}</div>
+            <button class="btn buyBtn" ${!canBuy?'disabled':''}>Buy</button>
+          </div>`;
+        card.querySelector('.buyBtn').addEventListener('click',()=>buy(def.id));
+        itemsEl.appendChild(card);
+      }
+      renderStats();
+    }
 
-            setTimeout(() => {
-                slash.remove();
-            }, 700);
-        }
+    function buy(id){
+      const def = upgrades.find(u=>u.id===id);
+      const level = state.upgrades[id]||0;
+      const price = getCost(def, level);
+      if(state.score < price) return;
+      state.score -= price;
+      state.upgrades[id] = level+1;
+      const eff = def.effect(level+1);
+      if(eff.multMul) state.mult *= eff.multMul;
+      renderStats();
+      save();
+    }
 
-        zoroImg.addEventListener("click", (e) => {
-            totalClicks++;
+    function spawnFloat(x,y,text,crit=false){
+      const el=document.createElement('div');
+      el.className='float '+(crit?'crit':'norm');
+      el.textContent=text;
+      const rect=stage.getBoundingClientRect();
+      el.style.left=(x-rect.left)+'px';
+      el.style.top=(y-rect.top)+'px';
+      stage.appendChild(el);
+      setTimeout(()=>el.remove(),950);
+    }
 
-            if (inBossFight) {
-                damageBoss();
-                createSlashEffect(e.pageX, e.pageY);
-            } else {
-                clickGain(e.pageX, e.pageY);
-                if (totalClicks % 50 === 0) {
-                    startBossFight();
-                }
-            }
-        });
-        </script>
-    </body>
+    function clickGain(atX,atY){
+      const crit=Math.random()<0.05;
+      const gain=(crit?10:1)*getCpc();
+      state.score+=gain;
+      zoroImg.classList.remove('pulse');
+      void zoroImg.offsetWidth;
+      zoroImg.classList.add('pulse');
+      spawnFloat(atX,atY,`+${format(gain)}`+(crit?'CRIT!':''),crit);
+      renderStats();
+    }
+
+    $('#saveBtn').addEventListener('click',save);
+    $('#resetBtn').addEventListener('click',()=>{
+      if(!confirm('Reset all progress, u sure gng?')) return;
+      localStorage.removeItem(LS_KEY);
+      location.reload();
+    });
+
+    function tick(){
+      const now=Date.now();
+      const dt=Math.max(0,now-state.lastTs);
+      state.lastTs=now;
+      const cps=getCps();
+      if(cps>0) state.score+=(cps*dt)/1000;
+      renderStats();
+      requestAnimationFrame(tick);
+    }
+
+    setInterval(save,10000);
+    load(); createShop(); renderStats(); requestAnimationFrame(tick);
+
+    // Boss system
+let inBossFight = false;
+let bossHP = 0;
+let bossMaxHP = 0;
+let currentBoss = "";
+let totalClicks = 0;
+
+const bosses = ["Buggy the Clown","Don Krieg","Arlong","Crocodile","Rob Lucci","Gecko Moria","Doflamingo","Katakuri","Kaido"];
+
+const bossContainer = document.getElementById("boss-container");
+const bossNameEl = document.getElementById("boss-name");
+const bossHpEl = document.getElementById("boss-hp");
+
+function startBossFight(){
+  inBossFight = true;
+  bossMaxHP = 500 + Math.floor(totalClicks/50)*200; // scale with progress
+  bossHP = bossMaxHP;
+  currentBoss = bosses[Math.floor(Math.random()*bosses.length)];
+  bossContainer.style.display = "block";
+  bossNameEl.textContent = "⚔️ BOSS APEARED: " + currentBoss + " ⚔️";
+  updateBossBar();
+  alert("⚔️ " + currentBoss + " APEARED!\nU NEED " + bossMaxHP + " CUTS TO SLAY HIM");
+}
+
+function updateBossBar(){ bossHpEl.style.width = (bossHP/bossMaxHP*100) + "%"; }
+
+function bossDamage(dmg){
+  if(!inBossFight) return;
+  bossHP -= dmg;
+  if(bossHP <= 0){
+    bossHP = 0;
+    inBossFight = false;
+    bossContainer.style.display = "none";
+    state.score += 10000;
+    spawnFloat(stage.clientWidth/2,stage.clientHeight/2,"U HV SLAYED " + currentBoss + "!!!",true);
+  }
+  updateBossBar();
+}
+
+
+    function handleClick(e){
+  const x = e.clientX, y = e.clientY;
+  clickGain(x,y);
+  totalClicks++;
+  if(!inBossFight && totalClicks % 50 === 0){
+    startBossFight();
+  }
+  if(inBossFight){
+    bossDamage(getCpc());
+  }
+}
+
+zoroImg.addEventListener('click', handleClick);
+document.addEventListener('keydown',(e)=>{
+  if(e.code==="Space"||e.code==="Enter"){
+    const rect=zoroImg.getBoundingClientRect();
+    const x=rect.left+rect.width/2;
+    const y=rect.top+rect.height/2;
+    handleClick({clientX:x, clientY:y});
+  }
+});
+
+  </script>
+</body>
 </html>
